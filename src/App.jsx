@@ -12,9 +12,10 @@ import AgentList from './components/AgentList';
 import AgentDetail from './components/AgentDetail';
 import PayrollSection from './components/PayrollSection';
 import RROperations from './components/RROperations';
-import AgentTracker from './components/AgentTracker';import ThemeToggle from './components/ThemeToggle';
+import AgentTracker from './components/AgentTracker';
+import AlertsPanel from './components/AlertsPanel';import ThemeToggle from './components/ThemeToggle';
 import Legend from './components/Legend';
-import { Activity, Loader2, BarChart3, ClipboardList } from 'lucide-react';
+import { Activity, Loader2, BarChart3, ClipboardList, Bell } from 'lucide-react';
 
 function App() {
   const token = useMemo(() => new URLSearchParams(window.location.search).get('access') || '', []);
@@ -80,6 +81,7 @@ function Dashboard({ accessConfig }) {
   const tabs = [
     { key:'attendance', label:'Attendance', icon:<BarChart3 size={15} /> },
     ...(showRR ? [{ key:'rr', label:'Record Review', icon:<ClipboardList size={15} /> }] : []),
+    ...(isAdmin || accessConfig.showRR ? [{ key:'alerts', label:'Alerts', icon:<Bell size={15} /> }] : []),
   ];
 
   const attTabs = [
@@ -188,6 +190,15 @@ function Dashboard({ accessConfig }) {
             setCustomRange={rrDataHook.setCustomRange}
             isSingleDay={rrDataHook.isSingleDay}
             rawData={rrDataHook.rawData}
+            range={rrDataHook.range}
+          />
+        )}
+        {/* Alerts */}
+        {activeTab === 'alerts' && (
+          <AlertsPanel
+            opsData={rrDataHook.opsData}
+            attendanceData={filteredData}
+            isSingleDay={rrDataHook.isSingleDay}
             range={rrDataHook.range}
           />
         )}

@@ -95,14 +95,21 @@ export function useRRData() {
       dates.forEach(date => {
         const dayCases = ag.cases.filter(c => c.date === date && c.start_time && c.end_time)
           .sort((a,b) => a.start_time.localeCompare(b.start_time));
-        const dayGaps = [];
+        const allGaps = [];
         for (let i = 1; i < dayCases.length; i++) {
           const [ph,pm,ps] = dayCases[i-1].end_time.split(':').map(Number);
           const [ch,cm,cs] = dayCases[i].start_time.split(':').map(Number);
           const gapMin = Math.round(((ch*3600+cm*60+(cs||0)) - (ph*3600+pm*60+(ps||0))) / 60);
-          if (gapMin >= 10) dayGaps.push({ from: dayCases[i-1].end_time.slice(0,5), to: dayCases[i].start_time.slice(0,5), gapMin });
+          if (gapMin >= 10) allGaps.push({ from: dayCases[i-1].end_time.slice(0,5), to: dayCases[i].start_time.slice(0,5), gapMin });
         }
-        ag.gapsByDay[date] = dayGaps;
+        // Exclude expected lunch (60-65 min, 1 allowed) and breaks (15-20 min, 2 allowed)
+        let lunchExcluded = 0, breakExcluded = 0;
+        const realGaps = allGaps.filter(g => {
+          if (g.gapMin >= 60 && g.gapMin <= 65 && lunchExcluded < 1) { lunchExcluded++; return false; }
+          if (g.gapMin >= 15 && g.gapMin <= 20 && breakExcluded < 2) { breakExcluded++; return false; }
+          return true;
+        });
+        ag.gapsByDay[date] = realGaps;
       });
     });
 
@@ -113,12 +120,12 @@ export function useRRData() {
       const escAHT = ag.escCount ? Math.round(ag.escSec/ag.escCount/60*10)/10 : null;
       const progress = Math.min(Math.round(total/(DAILY_TARGET*workDays)*100),100);
 
-      // Gaps summary
+      // Gaps summary (after exclusions)
       const allDayGaps = Object.values(ag.gapsByDay);
       const totalGapCount = allDayGaps.reduce((s,g)=>s+g.length,0);
       const avgGapsPerDay = workDays ? Math.round(totalGapCount/workDays*10)/10 : 0;
       const todayGaps = isSingleDay ? (ag.gapsByDay[range.start]||[]) : [];
-      const gapAlert = isSingleDay ? todayGaps.length >= 3 : avgGapsPerDay >= 3;
+      const gapAlert = isSingleDay ? todayGaps.length >= 1 : avgGapsPerDay >= 1;
 
       return { name, total, regAHT, escAHT, regCount:ag.regCount, escCount:ag.escCount, avoidCount:ag.avoidCount, progress,
         gaps: isSingleDay ? todayGaps : null, avgGapsPerDay, gapAlert, gapCount: isSingleDay ? todayGaps.length : avgGapsPerDay };
