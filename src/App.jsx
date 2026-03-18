@@ -12,8 +12,7 @@ import AgentList from './components/AgentList';
 import AgentDetail from './components/AgentDetail';
 import PayrollSection from './components/PayrollSection';
 import RROperations from './components/RROperations';
-
-import ThemeToggle from './components/ThemeToggle';
+import AgentTracker from './components/AgentTracker';import ThemeToggle from './components/ThemeToggle';
 import Legend from './components/Legend';
 import { Activity, Loader2, BarChart3, ClipboardList } from 'lucide-react';
 
