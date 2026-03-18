@@ -1,0 +1,99 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* ========== LIGHT MODE (default) ========== */
+:root {
+  --bg-primary: #ffffff;
+  --bg-secondary: #faf8f5;
+  --bg-card: #ffffff;
+  --bg-card-hover: #faf8f5;
+  --bg-input: #f5f2ed;
+  --border: #e8e2d9;
+  --border-hover: #d4cbc0;
+  --text-primary: #2d2a26;
+  --text-secondary: #5c5650;
+  --text-muted: #9c9488;
+  --text-inverse: #ffffff;
+  --accent: #C6842A;
+  --accent-light: #fdf3e4;
+  --accent-dark: #A66B1A;
+  --accent-hover: #B3751F;
+  --bar-bg: #e8e2d9;
+  --table-header: #faf8f5;
+  --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ========== DARK MODE ========== */
+.dark {
+  --bg-primary: #1a1714;
+  --bg-secondary: #242019;
+  --bg-card: #242019;
+  --bg-card-hover: #2e2a22;
+  --bg-input: #1a1714;
+  --border: #3a342b;
+  --border-hover: #4d4538;
+  --text-primary: #f0ebe4;
+  --text-secondary: #a69e93;
+  --text-muted: #726a5e;
+  --text-inverse: #1a1714;
+  --accent: #D4922E;
+  --accent-light: rgba(198,132,42,0.15);
+  --accent-dark: #E8A83C;
+  --accent-hover: #E0A035;
+  --bar-bg: #3a342b;
+  --table-header: #242019;
+  --shadow: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3 {
+  font-family: 'Questrial', sans-serif;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-up {
+  animation: fadeUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+}
+.card:hover {
+  border-color: var(--border-hover);
+}
