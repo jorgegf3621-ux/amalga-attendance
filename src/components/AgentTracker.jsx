@@ -7,15 +7,6 @@ function fmtTime(secs) {
   const m = Math.floor(secs/60), s = secs%60;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
-function fmtTimeStr(t) {
-  if (!t) return '--:--';
-  // Handle full date strings like "Sat Dec 30 1899 14:53:00 GMT..."
-  if (t.length > 8) {
-    const m = t.match(/(\d{2}:\d{2}:\d{2})/);
-    return m ? m[1].slice(0,5) : '--:--';
-  }
-  return t.slice(0,5);
-}
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
@@ -26,8 +17,7 @@ function CopyButton({ text }) {
   }
   return (
     <button onClick={handleCopy} className="p-1 rounded transition-all"
-      style={{ color: copied ? '#34c98a' : 'var(--text-muted)' }}
-      title="Copy case number">
+      style={{ color: copied ? '#34c98a' : 'var(--text-muted)' }} title="Copy">
       {copied ? <Check size={11}/> : <Copy size={11}/>}
     </button>
   );
@@ -42,25 +32,31 @@ export default function AgentTracker({ accessConfig }) {
     startCase, closeCase, cancelCase, startActivity, endActivity,
   } = useTracker(agentName);
 
-  const [step, setStep]                   = useState('idle');
-  const [caseNumber, setCaseNumber]       = useState('');
-  const [escalation, setEscalation]       = useState(null);
-  const [avoidable, setAvoidable]         = useState(null);
+  const [step, setStep]                         = useState('idle');
+  const [caseNumber, setCaseNumber]             = useState('');
+  const [escalation, setEscalation]             = useState(null);
+  const [avoidable, setAvoidable]               = useState(null);
   const [avoidableCategory, setAvoidableCategory] = useState('');
-  const [isDuplicate, setIsDuplicate]     = useState(false);
-  const [duplicateTimes, setDuplicateTimes] = useState(1);
-  const [error, setError]                 = useState('');
+  const [isDuplicate, setIsDuplicate]           = useState(false);
+  const [duplicateTimes, setDuplicateTimes]     = useState(1);
+  const [error, setError]                       = useState('');
+
+  const firstName = agentName.split(' ')[0];
+  const regCount  = todayCases.filter(c => c.case_type==='Regular' && !c.case_number.endsWith('_DUP')).length;
+  const escCount  = todayCases.filter(c => c.case_type==='Escalation' && !c.case_number.endsWith('_DUP')).length;
+  const barCol    = progress >= 90 ? '#34c98a' : progress >= 60 ? accent : progress >= 30 ? '#e8a020' : '#e05555';
 
   function handleCancel() {
     cancelCase();
     setStep('idle');
     setError('');
   }
-  const firstName = agentName.split(' ')[0];  = todayCases.filter(c => c.case_type==='Regular' && !c.case_number.endsWith('_DUP')).length;
-  const escCount  = todayCases.filter(c => c.case_type==='Escalation' && !c.case_number.endsWith('_DUP')).length;
-  const barCol    = progress >= 90 ? '#34c98a' : progress >= 60 ? accent : progress >= 30 ? '#e8a020' : '#e05555';
 
-  function handleNewCase() { setStep('input'); setCaseNumber(''); setError(''); }
+  function handleNewCase() {
+    setStep('input');
+    setCaseNumber('');
+    setError('');
+  }
 
   function handleStartCase() {
     const cn = caseNumber.trim();
@@ -85,7 +81,6 @@ export default function AgentTracker({ accessConfig }) {
       {/* Header */}
       <header className="sticky top-0 z-50" style={{ background:'var(--bg-primary)', borderBottom:'1px solid var(--border)' }}>
         <div className="px-6 py-3 flex items-center gap-4">
-          {/* Agent info */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0"
               style={{ background: accent+'22', color: accent }}>{firstName.slice(0,2).toUpperCase()}</div>
@@ -95,7 +90,6 @@ export default function AgentTracker({ accessConfig }) {
             </div>
           </div>
 
-          {/* Progress */}
           <div className="flex-1 mx-4">
             <div className="flex items-center justify-between mb-1.5">
               <div className="flex items-center gap-3">
@@ -113,7 +107,6 @@ export default function AgentTracker({ accessConfig }) {
             </div>
           </div>
 
-          {/* Activity status pill */}
           {activity && (
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
               style={{ background: activity.type==='lunch'?'rgba(232,160,32,.15)':'rgba(55,154,171,.15)', color: activity.type==='lunch'?'#e8a020':accent }}>
@@ -122,7 +115,6 @@ export default function AgentTracker({ accessConfig }) {
             </div>
           )}
 
-          {/* Theme toggle */}
           <button onClick={toggle} className="p-2 rounded-lg transition-all"
             style={{ background:'var(--bg-secondary)', border:'1px solid var(--border)', color:'var(--text-muted)' }}>
             {dark ? <Sun size={15}/> : <Moon size={15}/>}
@@ -131,11 +123,11 @@ export default function AgentTracker({ accessConfig }) {
       </header>
 
       <div className="p-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto space-y-4">
 
           {/* Active Case */}
           {activeCase && step==='close' && (
-            <div className="rounded-2xl border-2 overflow-hidden mb-6" style={{ borderColor: accent, background:'var(--bg-card)' }}>
+            <div className="rounded-2xl border-2 overflow-hidden" style={{ borderColor: accent, background:'var(--bg-card)' }}>
               <div className="px-6 py-4 flex items-center justify-between" style={{ background: accent+'12' }}>
                 <div>
                   <div className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: accent }}>Active Case</div>
@@ -143,13 +135,11 @@ export default function AgentTracker({ accessConfig }) {
                     <div className="text-2xl font-mono font-bold" style={{ color:'var(--text-primary)' }}>{activeCase.caseNumber}</div>
                     <CopyButton text={activeCase.caseNumber} />
                   </div>
-                  <div className="text-xs mt-1" style={{ color:'var(--text-muted)' }}>Started {fmtTimeStr(activeCase.startTime)}</div>
                 </div>
                 <div className="text-5xl font-mono font-bold" style={{ color: accent }}>{fmtTime(elapsed)}</div>
               </div>
 
               <div className="p-6 grid grid-cols-2 gap-6">
-                {/* Left: Escalation + Avoidable */}
                 <div className="space-y-4">
                   <div>
                     <div className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color:'var(--text-muted)' }}>Escalation</div>
@@ -179,7 +169,6 @@ export default function AgentTracker({ accessConfig }) {
                     </div>
                   )}
 
-                  {/* Duplicate */}
                   <div className="flex items-center gap-3 pt-2">
                     <button onClick={() => setIsDuplicate(!isDuplicate)}
                       className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all"
@@ -190,13 +179,12 @@ export default function AgentTracker({ accessConfig }) {
                       <select value={duplicateTimes} onChange={e => setDuplicateTimes(Number(e.target.value))}
                         className="rounded-lg px-3 py-2 text-xs border outline-none"
                         style={{ background:'var(--bg-secondary)', borderColor:'var(--border)', color:'var(--text-primary)' }}>
-                        {[...Array(10)].map((_,i) => <option key={i+1} value={i+1}>×{i+1}</option>)}
+                        {[...Array(10)].map((_,i) => <option key={i+1} value={i+1}>x{i+1}</option>)}
                       </select>
                     )}
                   </div>
                 </div>
 
-                {/* Right: Category */}
                 <div>
                   {escalation===true && avoidable===true && (
                     <>
@@ -233,7 +221,7 @@ export default function AgentTracker({ accessConfig }) {
 
           {/* New case input */}
           {step==='input' && !activeCase && (
-            <div className="rounded-2xl border p-6 mb-6" style={{ background:'var(--bg-card)', borderColor: accent }}>
+            <div className="rounded-2xl border p-6" style={{ background:'var(--bg-card)', borderColor: accent }}>
               <div className="text-sm font-bold mb-3" style={{ color:'var(--text-primary)' }}>Enter Case Number</div>
               <div className="flex gap-3">
                 <input autoFocus value={caseNumber}
@@ -244,6 +232,10 @@ export default function AgentTracker({ accessConfig }) {
                   style={{ background:'var(--bg-secondary)', borderColor:'var(--border)', color:'var(--text-primary)' }}
                 />
                 <button onClick={() => { setStep('idle'); setError(''); }}
+                  className="px-4 py-3 rounded-xl text-sm font-semibold"
+                  style={{ background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
+                  Cancel
+                </button>
                 <button onClick={handleStartCase}
                   className="px-6 py-3 rounded-xl text-sm font-bold"
                   style={{ background: accent, color:'#fff' }}>
@@ -256,7 +248,7 @@ export default function AgentTracker({ accessConfig }) {
 
           {/* Main actions — idle */}
           {step==='idle' && !activeCase && (
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-3 gap-4">
               <button onClick={handleNewCase}
                 className="col-span-1 py-6 rounded-2xl text-sm font-bold flex flex-col items-center justify-center gap-2 transition-all hover:opacity-90"
                 style={{ background: accent, color:'#fff' }}>
@@ -267,7 +259,7 @@ export default function AgentTracker({ accessConfig }) {
                 onClick={() => activity?.type==='lunch' ? endActivity() : startActivity('lunch')}
                 disabled={!!activity && activity.type!=='lunch'}
                 className="py-6 rounded-2xl text-sm font-bold flex flex-col items-center justify-center gap-2 transition-all"
-                style={{ background: activity?.type==='lunch'?'#e8a020':'var(--bg-card)', color: activity?.type==='lunch'?'#fff':'#e8a020', border:`2px solid #e8a020`, opacity:(activity && activity.type!=='lunch')?0.35:1 }}>
+                style={{ background: activity?.type==='lunch'?'#e8a020':'var(--bg-card)', color: activity?.type==='lunch'?'#fff':'#e8a020', border:'2px solid #e8a020', opacity:(activity && activity.type!=='lunch')?0.35:1 }}>
                 <UtensilsCrossed size={22}/>
                 {activity?.type==='lunch' ? `Back (${fmtTime(actElapsed)})` : 'Lunch'}
               </button>
@@ -282,7 +274,7 @@ export default function AgentTracker({ accessConfig }) {
             </div>
           )}
 
-          {/* Today's cases grid */}
+          {/* Today's cases */}
           {todayCases.length > 0 && (
             <div className="rounded-2xl border overflow-hidden" style={{ background:'var(--bg-card)', borderColor:'var(--border)' }}>
               <div className="px-5 py-3 border-b" style={{ borderColor:'var(--border)', background:'var(--bg-secondary)' }}>
