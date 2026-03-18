@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { DATE_PRESETS } from '../lib/useRRData';
+import { useState, useEffect } from 'react';
+import { DATE_PRESETS, fetchAgentStatuses, computeBlocks } from '../lib/useRRData';
 
 const AGENTS = ['Stephania Collazo', 'Alexis Garcia', 'Katya Elisa Carballo'];
 const AGENT_SHORT = { 'Stephania Collazo':'Steph', 'Alexis Garcia':'Alexis', 'Katya Elisa Carballo':'Elisa' };
@@ -186,8 +186,58 @@ function GapsPanel({ agents, filterAgent, isSingleDay }) {
   );
 }
 
-export default function RROperations({ opsData, loading, error, preset, setPreset, customRange, setCustomRange, isSingleDay, rawData }) {
+function BlocksPanel({ cases }) {
+  const blocks = computeBlocks(cases);
+  const cols = ['#379AAB','#34c98a','#7c6fd4'];
+  return (
+    <div className="grid grid-cols-3 gap-3">
+      {blocks.map((b,i) => {
+        const col = b.pct>=100?cols[i]:b.pct>=80?cols[i]:b.pct>=50?'#e8a020':'#e05555';
+        const st = b.pct>=100?'✓ Target':b.pct>=80?'↑ On track':b.pct>=50?'→ In progress':'↓ Below';
+        return (
+          <div key={b.key} className="rounded-xl border p-4" style={{ background:'var(--bg-secondary)', borderColor:'var(--border)' }}>
+            <div className="flex justify-between items-start mb-2">
+              <span className="text-xs font-semibold" style={{ color:'var(--text-muted)' }}>{b.label}</span>
+              <span className="text-xs" style={{ color:'var(--text-muted)' }}>{b.start.slice(0,5)}–{b.end.slice(0,5)}</span>
+            </div>
+            <div className="text-3xl font-mono font-bold mb-1" style={{ color: col }}>{b.total}</div>
+            <div className="text-xs mb-2" style={{ color:'var(--text-muted)' }}>target: {b.target}</div>
+            <div className="h-1.5 rounded-full mb-2" style={{ background:'var(--border)' }}>
+              <div className="h-full rounded-full" style={{ width:`${b.pct}%`, background: col }} />
+            </div>
+            <div className="text-xs font-bold mb-3" style={{ color: col }}>{st}</div>
+            <div className="space-y-1 text-xs border-t pt-2" style={{ borderColor:'var(--border)' }}>
+              <div className="flex justify-between">
+                <span style={{ color:'var(--text-muted)' }}>Reg AHT</span>
+                <span className="font-mono" style={{ color: b.regAHT&&b.regAHT>b.regAHT?'#e05555':'var(--text-secondary)' }}>
+                  {b.regAHT??'—'}m <span style={{ color:'var(--text-muted)' }}>/ {b.regAHT}m</span>
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span style={{ color:'var(--text-muted)' }}>Esc AHT</span>
+                <span className="font-mono" style={{ color:'var(--text-secondary)' }}>
+                  {b.escAHT??'—'}m <span style={{ color:'var(--text-muted)' }}>/ {b.escAHT}m</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function RROperations({ opsData, loading, error, preset, setPreset, customRange, setCustomRange, isSingleDay, rawData, range }) {
   const [filterAgent, setFilterAgent] = useState(null);
+  const [statusMap, setStatusMap] = useState({});
+
+  // Fetch live status when on single day
+  useEffect(() => {
+    if (!isSingleDay || !range?.start) return;
+    fetchAgentStatuses(range.start).then(setStatusMap);
+    const t = setInterval(() => fetchAgentStatuses(range.start).then(setStatusMap), 30000);
+    return () => clearInterval(t);
+  }, [isSingleDay, range?.start]);
 
   const team = opsData;
   const workDays = team?.workDays || 1;
@@ -239,11 +289,32 @@ export default function RROperations({ opsData, loading, error, preset, setPrese
 
           {/* Agent cards */}
           <div className="grid grid-cols-3 gap-4">
-            {(team.agents||[]).map(agent => (
-              <AgentCard key={agent.name} agent={agent} filterAgent={filterAgent}
-                setFilterAgent={setFilterAgent} workDays={workDays} />
-            ))}
+            {(team.agents||[]).map(agent => {
+              const status = statusMap[agent.name];
+              const statusLabel = status ? (status.type==='lunch'?'🍽 On Lunch':'☕ On Break') : null;
+              return (
+                <div key={agent.name}>
+                  <AgentCard agent={agent} filterAgent={filterAgent} setFilterAgent={setFilterAgent} workDays={workDays} />
+                  {statusLabel && (
+                    <div className="mt-1 text-xs font-semibold text-center px-2 py-1 rounded-lg"
+                      style={{ background: status.type==='lunch'?'rgba(232,160,32,.15)':'rgba(55,154,171,.15)', color: status.type==='lunch'?'#e8a020':'#379AAB' }}>
+                      {statusLabel}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
+
+          {/* Blocks — only when agent selected + single day */}
+          {filterAgent && isSingleDay && (
+            <div>
+              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color:'var(--text-muted)' }}>
+                {filterAgent.split(' ')[0]} · Time Blocks
+              </div>
+              <BlocksPanel cases={(rawData||[]).filter(r=>r.agent===filterAgent)} />
+            </div>
+          )}
 
           {/* Charts row */}
           <div className={`grid gap-4 ${team.weeks?.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
@@ -262,3 +333,6 @@ export default function RROperations({ opsData, loading, error, preset, setPrese
     </div>
   );
 }
+
+// Add at top of file — but since we're appending, add Blocks component here
+// This will be imported and used when filterAgent is selected on a single day

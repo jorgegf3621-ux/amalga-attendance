@@ -125,7 +125,7 @@ export function useRRData() {
     });
 
     const teamTotal = agents.reduce((s,a)=>s+a.total,0);
-    const teamAvg   = Math.round(teamTotal/3);
+    const teamAvg   = Math.round(teamTotal/workDays/3*10)/10;
     const teamEsc   = agents.reduce((s,a)=>s+a.escCount,0);
     const teamReg   = agents.reduce((s,a)=>s+a.regCount,0);
     const teamAvoid = agents.reduce((s,a)=>s+a.avoidCount,0);
@@ -158,4 +158,40 @@ export function useRRData() {
   }, [rawData, isSingleDay, range.start]);
 
   return { opsData, loading, error, preset, setPreset, customRange, setCustomRange, range, isSingleDay, rawData };
+}
+
+// Fetch today's activity status for all agents (for dashboard)
+export async function fetchAgentStatuses(date) {
+  const { data } = await supabase
+    .from('activity_log')
+    .select('*')
+    .eq('date', date)
+    .is('end_time', null) // still active
+    .order('created_at', { ascending: false });
+  
+  // Latest open activity per agent
+  const statusMap = {};
+  (data || []).forEach(row => {
+    if (!statusMap[row.agent]) statusMap[row.agent] = row;
+  });
+  return statusMap;
+}
+
+// Compute block stats for a single agent on a single day
+export function computeBlocks(cases) {
+  const BLOCKS = [
+    { key:'b1', label:'Block 1', start:'09:00:00', end:'13:00:00', target:34, regAHT:5.0, escAHT:12.0 },
+    { key:'b2', label:'Block 2', start:'14:00:00', end:'17:00:00', target:25, regAHT:5.0, escAHT:12.0 },
+    { key:'b3', label:'Block 3', start:'17:00:00', end:'18:00:00', target:9,  regAHT:5.0, escAHT:12.0 },
+  ];
+  return BLOCKS.map(b => {
+    const blockCases = cases.filter(c => c.start_time && c.start_time >= b.start && c.start_time < b.end);
+    const reg = blockCases.filter(c => c.case_type==='Regular' && c.duration_sec>0 && c.duration_sec<=3000);
+    const esc = blockCases.filter(c => c.case_type==='Escalation' && c.duration_sec>0 && c.duration_sec<=3000);
+    const regAHT = reg.length ? Math.round(reg.reduce((s,c)=>s+c.duration_sec,0)/reg.length/60*10)/10 : null;
+    const escAHT = esc.length ? Math.round(esc.reduce((s,c)=>s+c.duration_sec,0)/esc.length/60*10)/10 : null;
+    const total = blockCases.length;
+    const pct = Math.min(Math.round(total/b.target*100),100);
+    return { ...b, total, regCount:reg.length, escCount:esc.length, regAHT, escAHT, pct };
+  });
 }

@@ -8,6 +8,7 @@ export const ACCESS_TOKENS = {
     accentLight: '#fdf3e4',
     showRR: true,
     showPayroll: true,
+    isAgent: false,
   },
   // Viewer (Gemini Vouchers) — solo Attendance Vouchers
   'gemini-vouchers': {
@@ -18,8 +19,9 @@ export const ACCESS_TOKENS = {
     accentLight: '#fef0e4',
     showRR: false,
     showPayroll: false,
+    isAgent: false,
   },
-  // Record Review TL — Attendance RR + Record Review dashboard
+  // Record Review TL
   'rr2026': {
     role: 'rr-admin',
     label: 'Record Review — Operations',
@@ -28,6 +30,32 @@ export const ACCESS_TOKENS = {
     accentLight: '#e8f7fa',
     showRR: true,
     showPayroll: false,
+    isAgent: false,
+  },
+  // Agents
+  'rr-steph': {
+    role: 'agent',
+    label: 'Record Review',
+    agentName: 'Stephania Collazo',
+    accent: '#379AAB',
+    accentLight: '#e8f7fa',
+    isAgent: true,
+  },
+  'rr-alexis': {
+    role: 'agent',
+    label: 'Record Review',
+    agentName: 'Alexis Garcia',
+    accent: '#34c98a',
+    accentLight: '#e8faf3',
+    isAgent: true,
+  },
+  'rr-elisa': {
+    role: 'agent',
+    label: 'Record Review',
+    agentName: 'Katya Elisa Carballo',
+    accent: '#7c6fd4',
+    accentLight: '#f0eeff',
+    isAgent: true,
   },
 };
 

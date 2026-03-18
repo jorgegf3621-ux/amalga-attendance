@@ -12,6 +12,7 @@ import AgentList from './components/AgentList';
 import AgentDetail from './components/AgentDetail';
 import PayrollSection from './components/PayrollSection';
 import RROperations from './components/RROperations';
+
 import ThemeToggle from './components/ThemeToggle';
 import Legend from './components/Legend';
 import { Activity, Loader2, BarChart3, ClipboardList } from 'lucide-react';
@@ -29,7 +30,12 @@ function App() {
 
   return (
     <ThemeProvider>
-      {accessConfig ? <Dashboard accessConfig={accessConfig} /> : <AccessDenied />}
+      {!accessConfig
+        ? <AccessDenied />
+        : accessConfig.isAgent
+          ? <AgentTracker accessConfig={accessConfig} />
+          : <Dashboard accessConfig={accessConfig} />
+      }
     </ThemeProvider>
   );
 }
@@ -183,6 +189,7 @@ function Dashboard({ accessConfig }) {
             setCustomRange={rrDataHook.setCustomRange}
             isSingleDay={rrDataHook.isSingleDay}
             rawData={rrDataHook.rawData}
+            range={rrDataHook.range}
           />
         )}
       </main>
