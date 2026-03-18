@@ -24,5 +24,5 @@ export function ThemeProvider({ children }) {
 }
 
 export function useTheme() {
-  return useContext(ThemeContext);
+  return { dark, toggle, isDark: dark, toggleTheme: toggle };
 }
