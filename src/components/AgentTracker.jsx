@@ -41,7 +41,7 @@ export default function AgentTracker({ accessConfig }) {
   const [duplicateTimes, setDuplicateTimes]     = useState(1);
   const [error, setError]                       = useState('');
 
-  const firstName = agentName.split(' ')[0];
+  const firstName = accessConfig.displayName || agentName.split(' ')[0];
   const regCount  = todayCases.filter(c => c.case_type==='Regular' && !c.case_number.endsWith('_DUP')).length;
   const escCount  = todayCases.filter(c => c.case_type==='Escalation' && !c.case_number.endsWith('_DUP')).length;
   const barCol    = progress >= 90 ? '#34c98a' : progress >= 60 ? accent : progress >= 30 ? '#e8a020' : '#e05555';

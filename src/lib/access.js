@@ -53,6 +53,7 @@ export const ACCESS_TOKENS = {
     role: 'agent',
     label: 'Record Review',
     agentName: 'Katya Elisa Carballo',
+    displayName: 'Elisa',
     accent: '#7c6fd4',
     accentLight: '#f0eeff',
     isAgent: true,
