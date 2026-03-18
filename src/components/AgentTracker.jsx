@@ -7,7 +7,15 @@ function fmtTime(secs) {
   const m = Math.floor(secs/60), s = secs%60;
   return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
 }
-function fmtTimeStr(t) { return t ? t.slice(0,5) : '--:--'; }
+function fmtTimeStr(t) {
+  if (!t) return '--:--';
+  // Handle full date strings like "Sat Dec 30 1899 14:53:00 GMT..."
+  if (t.length > 8) {
+    const m = t.match(/(\d{2}:\d{2}:\d{2})/);
+    return m ? m[1].slice(0,5) : '--:--';
+  }
+  return t.slice(0,5);
+}
 
 function CopyButton({ text }) {
   const [copied, setCopied] = useState(false);
@@ -27,7 +35,7 @@ function CopyButton({ text }) {
 
 export default function AgentTracker({ accessConfig }) {
   const { agentName, accent } = accessConfig;
-  const { isDark, toggleTheme } = useTheme();
+  const { dark, toggle } = useTheme();
   const {
     todayCases, activeCase, activity, loading, saving,
     elapsed, actElapsed, totalCases, progress,
@@ -43,8 +51,12 @@ export default function AgentTracker({ accessConfig }) {
   const [duplicateTimes, setDuplicateTimes] = useState(1);
   const [error, setError]                 = useState('');
 
-  const firstName = agentName.split(' ')[0];
-  const regCount  = todayCases.filter(c => c.case_type==='Regular' && !c.case_number.endsWith('_DUP')).length;
+  function handleCancel() {
+    cancelCase();
+    setStep('idle');
+    setError('');
+  }
+  const firstName = agentName.split(' ')[0];  = todayCases.filter(c => c.case_type==='Regular' && !c.case_number.endsWith('_DUP')).length;
   const escCount  = todayCases.filter(c => c.case_type==='Escalation' && !c.case_number.endsWith('_DUP')).length;
   const barCol    = progress >= 90 ? '#34c98a' : progress >= 60 ? accent : progress >= 30 ? '#e8a020' : '#e05555';
 
@@ -111,9 +123,9 @@ export default function AgentTracker({ accessConfig }) {
           )}
 
           {/* Theme toggle */}
-          <button onClick={toggleTheme} className="p-2 rounded-lg transition-all"
+          <button onClick={toggle} className="p-2 rounded-lg transition-all"
             style={{ background:'var(--bg-secondary)', border:'1px solid var(--border)', color:'var(--text-muted)' }}>
-            {isDark ? <Sun size={15}/> : <Moon size={15}/>}
+            {dark ? <Sun size={15}/> : <Moon size={15}/>}
           </button>
         </div>
       </header>
@@ -206,7 +218,7 @@ export default function AgentTracker({ accessConfig }) {
               {error && <div className="px-6 pb-2 text-xs font-semibold" style={{ color:'#e05555' }}>{error}</div>}
 
               <div className="px-6 pb-6 flex gap-3">
-                <button onClick={cancelCase} className="px-6 py-3 rounded-xl text-sm font-semibold"
+                <button onClick={handleCancel} className="px-6 py-3 rounded-xl text-sm font-semibold"
                   style={{ background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
                   Cancel
                 </button>
@@ -232,10 +244,6 @@ export default function AgentTracker({ accessConfig }) {
                   style={{ background:'var(--bg-secondary)', borderColor:'var(--border)', color:'var(--text-primary)' }}
                 />
                 <button onClick={() => { setStep('idle'); setError(''); }}
-                  className="px-4 py-3 rounded-xl text-sm font-semibold"
-                  style={{ background:'var(--bg-secondary)', color:'var(--text-muted)', border:'1px solid var(--border)' }}>
-                  Cancel
-                </button>
                 <button onClick={handleStartCase}
                   className="px-6 py-3 rounded-xl text-sm font-bold"
                   style={{ background: accent, color:'#fff' }}>
@@ -276,17 +284,19 @@ export default function AgentTracker({ accessConfig }) {
 
           {/* Today's cases grid */}
           {todayCases.length > 0 && (
-            <div>
-              <div className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color:'var(--text-muted)' }}>
-                Today's Cases — {totalCases} total
+            <div className="rounded-2xl border overflow-hidden" style={{ background:'var(--bg-card)', borderColor:'var(--border)' }}>
+              <div className="px-5 py-3 border-b" style={{ borderColor:'var(--border)', background:'var(--bg-secondary)' }}>
+                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color:'var(--text-muted)' }}>
+                  Today's Cases — {totalCases} total
+                </span>
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="p-4 grid grid-cols-3 gap-3">
                 {[...todayCases].reverse().map(c => {
                   const isDup = c.case_number.endsWith('_DUP');
                   const isEsc = c.case_type==='Escalation';
                   return (
                     <div key={c.id} className="rounded-xl border px-4 py-3 flex items-center gap-3"
-                      style={{ background:'var(--bg-card)', borderColor:'var(--border)' }}>
+                      style={{ background:'var(--bg-secondary)', borderColor:'var(--border)' }}>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
                           <span className="text-sm font-mono font-semibold truncate" style={{ color:'var(--text-primary)' }}>
@@ -296,7 +306,7 @@ export default function AgentTracker({ accessConfig }) {
                           {isDup && <span className="text-xs px-1.5 rounded" style={{ background:'rgba(124,111,212,.15)', color:'#7c6fd4' }}>DUP</span>}
                         </div>
                         <div className="text-xs mt-0.5" style={{ color:'var(--text-muted)' }}>
-                          {fmtTimeStr(c.start_time)}→{fmtTimeStr(c.end_time)} · {Math.round(c.duration_sec/60*10)/10}m
+                          {Math.round(c.duration_sec/60*10)/10}m
                         </div>
                         {c.avoidable_category && (
                           <div className="text-xs mt-0.5 truncate" style={{ color:'var(--text-muted)' }}>{c.avoidable_category}</div>
