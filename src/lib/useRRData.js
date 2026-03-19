@@ -5,9 +5,16 @@ const RR_AGENTS = ['Stephania Collazo', 'Alexis Garcia', 'Katya Elisa Carballo']
 const DAILY_TARGET = 70;
 const OUTLIER_MAX_SEC = 50 * 60;
 
-function todayStr() { return new Date().toISOString().split('T')[0]; }
-function yesterdayStr() { const d = new Date(); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
-function nDaysAgoStr(n) { const d = new Date(); d.setDate(d.getDate()-n); return d.toISOString().split('T')[0]; }
+function localDateStr(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+
+function todayStr() { return localDateStr(new Date()); }
+function yesterdayStr() { const d = new Date(); d.setDate(d.getDate()-1); return localDateStr(d); }
+function nDaysAgoStr(n) { const d = new Date(); d.setDate(d.getDate()-n); return localDateStr(d); }
 function thisMonthRange() {
   const n = new Date();
   return { start: `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-01`, end: todayStr() };
@@ -16,7 +23,7 @@ function lastMonthRange() {
   const n = new Date();
   const first = new Date(n.getFullYear(), n.getMonth()-1, 1);
   const last  = new Date(n.getFullYear(), n.getMonth(), 0);
-  return { start: first.toISOString().split('T')[0], end: last.toISOString().split('T')[0] };
+  return { start: localDateStr(first), end: localDateStr(last) };
 }
 
 export const DATE_PRESETS = [
@@ -173,15 +180,34 @@ export async function fetchAgentStatuses(date) {
     .from('activity_log')
     .select('*')
     .eq('date', date)
-    .is('end_time', null) // still active
     .order('created_at', { ascending: false });
   
-  // Latest open activity per agent
+  // Latest open activity per agent (no end_time)
   const statusMap = {};
+  // Activity averages per agent per type
+  const activityAvgs = {};
+
   (data || []).forEach(row => {
-    if (!statusMap[row.agent]) statusMap[row.agent] = row;
+    if (!row.end_time && !statusMap[row.agent]) statusMap[row.agent] = row;
+    // Accumulate completed activities
+    if (row.end_time && row.duration_min) {
+      if (!activityAvgs[row.agent]) activityAvgs[row.agent] = {};
+      if (!activityAvgs[row.agent][row.type]) activityAvgs[row.agent][row.type] = { total:0, count:0 };
+      activityAvgs[row.agent][row.type].total += row.duration_min;
+      activityAvgs[row.agent][row.type].count++;
+    }
   });
-  return statusMap;
+
+  // Compute averages
+  const activitySummary = {};
+  Object.entries(activityAvgs).forEach(([agent, types]) => {
+    activitySummary[agent] = {};
+    Object.entries(types).forEach(([type, { total, count }]) => {
+      activitySummary[agent][type] = Math.round(total/count*10)/10;
+    });
+  });
+
+  return { statusMap, activitySummary };
 }
 
 // Compute block stats for a single agent on a single day
