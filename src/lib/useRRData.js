@@ -26,9 +26,28 @@ function lastMonthRange() {
   return { start: localDateStr(first), end: localDateStr(last) };
 }
 
+function thisWeekRange() {
+  const n = new Date();
+  const day = n.getDay();
+  const diff = day === 0 ? -6 : 1 - day; // Monday
+  const mon = new Date(n); mon.setDate(n.getDate() + diff);
+  return { start: localDateStr(mon), end: todayStr() };
+}
+function lastWeekRange() {
+  const n = new Date();
+  const day = n.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const thisMon = new Date(n); thisMon.setDate(n.getDate() + diff);
+  const lastMon = new Date(thisMon); lastMon.setDate(thisMon.getDate() - 7);
+  const lastSun = new Date(thisMon); lastSun.setDate(thisMon.getDate() - 1);
+  return { start: localDateStr(lastMon), end: localDateStr(lastSun) };
+}
+
 export const DATE_PRESETS = [
   { key: 'today',      label: 'Today' },
   { key: 'yesterday',  label: 'Yesterday' },
+  { key: 'thisWeek',   label: 'This Week' },
+  { key: 'lastWeek',   label: 'Last Week' },
   { key: 'last7',      label: 'Last 7 Days' },
   { key: 'thisMonth',  label: 'This Month' },
   { key: 'lastMonth',  label: 'Last Month' },
@@ -39,6 +58,8 @@ export function presetToRange(key) {
   switch(key) {
     case 'today':     return { start: todayStr(),     end: todayStr() };
     case 'yesterday': return { start: yesterdayStr(), end: yesterdayStr() };
+    case 'thisWeek':  return thisWeekRange();
+    case 'lastWeek':  return lastWeekRange();
     case 'last7':     return { start: nDaysAgoStr(6), end: todayStr() };
     case 'thisMonth': return thisMonthRange();
     case 'lastMonth': return lastMonthRange();

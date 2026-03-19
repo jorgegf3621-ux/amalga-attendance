@@ -25,19 +25,41 @@ const QUICK_FILTERS = [
   {
     label: 'Yesterday',
     apply: (setMonth, setRange) => {
-      const d = new Date();
-      d.setDate(d.getDate() - 1);
+      const d = new Date(); d.setDate(d.getDate()-1);
       const str = formatDate(d);
       setMonth('all');
       setRange({ start: str, end: str });
     },
   },
   {
+    label: 'This Week',
+    apply: (setMonth, setRange) => {
+      const n = new Date();
+      const day = n.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      const mon = new Date(n); mon.setDate(n.getDate()+diff);
+      setMonth('all');
+      setRange({ start: formatDate(mon), end: formatDate(new Date()) });
+    },
+  },
+  {
+    label: 'Last Week',
+    apply: (setMonth, setRange) => {
+      const n = new Date();
+      const day = n.getDay();
+      const diff = day === 0 ? -6 : 1 - day;
+      const thisMon = new Date(n); thisMon.setDate(n.getDate()+diff);
+      const lastMon = new Date(thisMon); lastMon.setDate(thisMon.getDate()-7);
+      const lastSun = new Date(thisMon); lastSun.setDate(thisMon.getDate()-1);
+      setMonth('all');
+      setRange({ start: formatDate(lastMon), end: formatDate(lastSun) });
+    },
+  },
+  {
     label: 'Last 7 Days',
     apply: (setMonth, setRange) => {
       const end = new Date();
-      const start = new Date();
-      start.setDate(start.getDate() - 7);
+      const start = new Date(); start.setDate(start.getDate()-7);
       setMonth('all');
       setRange({ start: formatDate(start), end: formatDate(end) });
     },
@@ -53,8 +75,8 @@ const QUICK_FILTERS = [
     label: 'Last Month',
     apply: (setMonth, setRange) => {
       const now = new Date();
-      const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-      const ym = `${prev.getFullYear()}-${String(prev.getMonth() + 1).padStart(2, '0')}`;
+      const prev = new Date(now.getFullYear(), now.getMonth()-1, 1);
+      const ym = `${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
       setRange({ start: '', end: '' });
       setMonth(ym);
     },
