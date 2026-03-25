@@ -10,6 +10,7 @@ const TABS = [
   { key: 'byPartialSickLeaves', label: 'Partial Sick Leave', field: 'partialSickLeaves', color: '#0ea5e9' },
   { key: 'byCompleteSickLeaves', label: 'Complete Sick Leave', field: 'completeSickLeaves', color: '#06b6d4' },
   { key: 'byEmergencies', label: 'Emergency', field: 'emergencies', color: '#ec4899' },
+  { key: 'byWorkDisruptions', label: 'Work Disruption', field: 'workDisruptions', color: '#64748b' },
 ];
 
 export default function OutliersSection({ data, onSelectAgent }) {

@@ -60,7 +60,7 @@ export function calcAttendanceByAgent(records) {
 
 /**
  * Cuenta códigos de attendance.
- * Retorna: { absences, tardies, ncns, ptos, utos, partialSickLeaves, completeSickLeaves, earlyLogouts, emergencies, onTime }
+ * Retorna: { absences, tardies, ncns, ptos, utos, partialSickLeaves, completeSickLeaves, earlyLogouts, emergencies, workDisruptions, onTime }
  */
 export function calcCounts(records) {
   const counts = {
@@ -73,6 +73,7 @@ export function calcCounts(records) {
     completeSickLeaves: 0,
     earlyLogouts: 0,
     emergencies: 0,
+    workDisruptions: 0,
     onTime: 0,
   };
 
@@ -87,6 +88,7 @@ export function calcCounts(records) {
       case 'SLW': counts.completeSickLeaves++; break;
       case 'SL': counts.partialSickLeaves++; break;
       case 'ER': counts.emergencies++; break;
+      case 'WD': counts.workDisruptions++; break;
       case 'EL':
       case 'EO': counts.earlyLogouts++; break;
       case 'ON': counts.onTime++; break;
@@ -126,7 +128,7 @@ export function calcOutliers(records, topN = 5) {
   records.forEach(r => {
     const agent = r.agent || 'Unknown';
     if (!byAgent[agent]) {
-      byAgent[agent] = { agent, department: r.department, absences: 0, tardies: 0, ncns: 0, utos: 0, ptos: 0, partialSickLeaves: 0, completeSickLeaves: 0, emergencies: 0, tardyMin: 0 };
+      byAgent[agent] = { agent, department: r.department, absences: 0, tardies: 0, ncns: 0, utos: 0, ptos: 0, partialSickLeaves: 0, completeSickLeaves: 0, emergencies: 0, workDisruptions: 0, tardyMin: 0 };
     }
     const code = (r.code || '').toUpperCase();
     if (code === 'A') byAgent[agent].absences++;
@@ -140,6 +142,7 @@ export function calcOutliers(records, topN = 5) {
     if (code === 'SL') byAgent[agent].partialSickLeaves++;
     if (code === 'SLW') byAgent[agent].completeSickLeaves++;
     if (code === 'ER') byAgent[agent].emergencies++;
+    if (code === 'WD') byAgent[agent].workDisruptions++;
   });
 
   const all = Object.values(byAgent);
@@ -153,6 +156,7 @@ export function calcOutliers(records, topN = 5) {
     byPartialSickLeaves: [...all].sort((a, b) => b.partialSickLeaves - a.partialSickLeaves).slice(0, topN),
     byCompleteSickLeaves: [...all].sort((a, b) => b.completeSickLeaves - a.completeSickLeaves).slice(0, topN),
     byEmergencies: [...all].sort((a, b) => b.emergencies - a.emergencies).slice(0, topN),
+    byWorkDisruptions: [...all].sort((a, b) => b.workDisruptions - a.workDisruptions).slice(0, topN),
   };
 }
 

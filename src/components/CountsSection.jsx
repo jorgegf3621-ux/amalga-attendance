@@ -18,6 +18,7 @@ function getRecordsByCode(data, codeFilter) {
       case 'partialSickLeaves': match = code === 'SL'; break;
       case 'completeSickLeaves': match = code === 'SLW'; break;
       case 'emergencies': match = code === 'ER'; break;
+      case 'workDisruptions': match = code === 'WD'; break;
       case 'earlyLogouts': match = code === 'EL' || code === 'EO'; break;
       case 'onTime': match = code === 'ON'; break;
     }
@@ -47,6 +48,7 @@ export default function CountsSection({ data }) {
     { key: 'partialSickLeaves', label: 'Partial Sick Leave', value: counts.partialSickLeaves, color: '#0ea5e9' },
     { key: 'completeSickLeaves', label: 'Complete Sick Leave', value: counts.completeSickLeaves, color: '#06b6d4' },
     { key: 'emergencies', label: 'Emergency', value: counts.emergencies, color: '#ec4899' },
+    { key: 'workDisruptions', label: 'Work Disruption', value: counts.workDisruptions, color: '#64748b' },
     { key: 'earlyLogouts', label: 'Early Logouts', value: counts.earlyLogouts, color: '#f97316' },
     { key: 'onTime', label: 'On Time', value: counts.onTime, color: '#10b981' },
   ];
