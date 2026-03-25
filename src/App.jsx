@@ -55,7 +55,7 @@ function Dashboard({ accessConfig }) {
     selectedDept, setSelectedDept,
     selectedAgent, setSelectedAgent,
     availableMonths, availableDepts,
-  } = useData(accessConfig.departments);
+  } = useData(accessConfig.departments, accessConfig.attendanceTable);
 
   const rrDataHook = useRRData();
 

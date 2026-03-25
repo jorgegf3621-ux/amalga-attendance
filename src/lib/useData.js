@@ -14,7 +14,7 @@ function getCurrentMonth() {
 /**
  * Hook principal — jala data de Supabase y aplica filtros.
  */
-export function useData(allowedDepartments) {
+export function useData(allowedDepartments, attendanceTable = 'daily_attendance') {
   const [rawData, setRawData] = useState([]);
   const [agents, setAgents] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +32,7 @@ export function useData(allowedDepartments) {
         setLoading(true);
 
         let attQuery = supabase
-          .from('daily_attendance')
+          .from(attendanceTable)
           .select('*')
           .order('date', { ascending: true });
 
@@ -66,7 +66,7 @@ export function useData(allowedDepartments) {
     }
 
     fetchData();
-  }, [allowedDepartments]);
+  }, [allowedDepartments, attendanceTable]);
 
   // Meses disponibles
   const availableMonths = useMemo(() => {

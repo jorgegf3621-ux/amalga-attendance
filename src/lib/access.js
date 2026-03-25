@@ -15,6 +15,7 @@ export const ACCESS_TOKENS = {
     role: 'viewer',
     label: 'Gemini — Vouchers',
     departments: ['Vouchers'],
+    attendanceTable: 'daily_attendance_gemini',
     accent: '#E07A2F',
     accentLight: '#fef0e4',
     showRR: false,
