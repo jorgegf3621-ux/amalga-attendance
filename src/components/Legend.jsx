@@ -11,6 +11,7 @@ const CODES = [
   { code: 'UTO', label: 'Unplanned Time Off', color: '#6366f1' },
   { code: 'SLW', label: 'Sick Leave (Full Day)', color: '#06b6d4' },
   { code: 'SL', label: 'Sick Leave (Partial)', color: '#06b6d4' },
+  { code: 'ER', label: 'Emergency', color: '#ec4899' },
   { code: 'WD', label: 'Work Disruption', color: '#64748b' },
 ];
 

@@ -15,7 +15,9 @@ function getRecordsByCode(data, codeFilter) {
       case 'ncns': match = code === 'NCNS'; break;
       case 'ptos': match = code === 'PTO'; break;
       case 'utos': match = code === 'UTO'; break;
-      case 'sickLeaves': match = code === 'SLW' || code === 'SL'; break;
+      case 'partialSickLeaves': match = code === 'SL'; break;
+      case 'completeSickLeaves': match = code === 'SLW'; break;
+      case 'emergencies': match = code === 'ER'; break;
       case 'earlyLogouts': match = code === 'EL' || code === 'EO'; break;
       case 'onTime': match = code === 'ON'; break;
     }
@@ -42,7 +44,9 @@ export default function CountsSection({ data }) {
     { key: 'ncns', label: 'NCNS', value: counts.ncns, color: '#dc2626' },
     { key: 'ptos', label: 'PTOs', value: counts.ptos, color: '#C6842A' },
     { key: 'utos', label: 'UTOs', value: counts.utos, color: '#6366f1' },
-    { key: 'sickLeaves', label: 'Sick Leaves', value: counts.sickLeaves, color: '#06b6d4' },
+    { key: 'partialSickLeaves', label: 'Partial Sick Leave', value: counts.partialSickLeaves, color: '#0ea5e9' },
+    { key: 'completeSickLeaves', label: 'Complete Sick Leave', value: counts.completeSickLeaves, color: '#06b6d4' },
+    { key: 'emergencies', label: 'Emergency', value: counts.emergencies, color: '#ec4899' },
     { key: 'earlyLogouts', label: 'Early Logouts', value: counts.earlyLogouts, color: '#f97316' },
     { key: 'onTime', label: 'On Time', value: counts.onTime, color: '#10b981' },
   ];

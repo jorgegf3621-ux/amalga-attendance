@@ -22,7 +22,7 @@ export default function AgentDetail({ data, agentName, onBack }) {
   const pctColor = (p) => p >= 0.95 ? '#10b981' : p >= 0.85 ? '#f59e0b' : '#ef4444';
 
   const codeColor = (code) => {
-    const map = { ON: '#10b981', T: '#f59e0b', A: '#ef4444', NCNS: '#dc2626', PTO: '#C6842A', UTO: '#6366f1', SLW: '#06b6d4', SL: '#06b6d4', EL: '#f97316', EO: '#f97316', WD: '#64748b' };
+    const map = { ON: '#10b981', T: '#f59e0b', A: '#ef4444', NCNS: '#dc2626', PTO: '#C6842A', UTO: '#6366f1', SLW: '#06b6d4', SL: '#06b6d4', ER: '#ec4899', EL: '#f97316', EO: '#f97316', WD: '#64748b' };
     return map[code?.toUpperCase()] || '#64748b';
   };
 
@@ -74,6 +74,7 @@ export default function AgentDetail({ data, agentName, onBack }) {
           { label: 'PTOs', val: counts.ptos, color: '#C6842A' },
           { label: 'UTOs', val: counts.utos, color: '#6366f1' },
           { label: 'Sick', val: counts.sickLeaves, color: '#06b6d4' },
+          { label: 'Emergency', val: counts.emergencies, color: '#ec4899' },
           { label: 'Early Out', val: counts.earlyLogouts, color: '#f97316' },
         ].map(c => (
           <div key={c.label} className="card p-3 text-center">

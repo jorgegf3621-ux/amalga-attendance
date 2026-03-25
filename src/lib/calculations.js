@@ -60,7 +60,7 @@ export function calcAttendanceByAgent(records) {
 
 /**
  * Cuenta códigos de attendance.
- * Retorna: { absences, tardies, ncns, ptos, utos, sickLeaves, earlyLogouts }
+ * Retorna: { absences, tardies, ncns, ptos, utos, partialSickLeaves, completeSickLeaves, earlyLogouts, emergencies, onTime }
  */
 export function calcCounts(records) {
   const counts = {
@@ -69,8 +69,10 @@ export function calcCounts(records) {
     ncns: 0,
     ptos: 0,
     utos: 0,
-    sickLeaves: 0,
+    partialSickLeaves: 0,
+    completeSickLeaves: 0,
     earlyLogouts: 0,
+    emergencies: 0,
     onTime: 0,
   };
 
@@ -82,8 +84,9 @@ export function calcCounts(records) {
       case 'NCNS': counts.ncns++; break;
       case 'PTO': counts.ptos++; break;
       case 'UTO': counts.utos++; break;
-      case 'SLW':
-      case 'SL': counts.sickLeaves++; break;
+      case 'SLW': counts.completeSickLeaves++; break;
+      case 'SL': counts.partialSickLeaves++; break;
+      case 'ER': counts.emergencies++; break;
       case 'EL':
       case 'EO': counts.earlyLogouts++; break;
       case 'ON': counts.onTime++; break;
@@ -123,7 +126,7 @@ export function calcOutliers(records, topN = 5) {
   records.forEach(r => {
     const agent = r.agent || 'Unknown';
     if (!byAgent[agent]) {
-      byAgent[agent] = { agent, department: r.department, absences: 0, tardies: 0, ncns: 0, utos: 0, ptos: 0, sickLeaves: 0, tardyMin: 0 };
+      byAgent[agent] = { agent, department: r.department, absences: 0, tardies: 0, ncns: 0, utos: 0, ptos: 0, partialSickLeaves: 0, completeSickLeaves: 0, emergencies: 0, tardyMin: 0 };
     }
     const code = (r.code || '').toUpperCase();
     if (code === 'A') byAgent[agent].absences++;
@@ -134,7 +137,9 @@ export function calcOutliers(records, topN = 5) {
     if (code === 'NCNS') byAgent[agent].ncns++;
     if (code === 'UTO') byAgent[agent].utos++;
     if (code === 'PTO') byAgent[agent].ptos++;
-    if (code === 'SLW' || code === 'SL') byAgent[agent].sickLeaves++;
+    if (code === 'SL') byAgent[agent].partialSickLeaves++;
+    if (code === 'SLW') byAgent[agent].completeSickLeaves++;
+    if (code === 'ER') byAgent[agent].emergencies++;
   });
 
   const all = Object.values(byAgent);
@@ -145,7 +150,9 @@ export function calcOutliers(records, topN = 5) {
     byTardyMinutes: [...all].sort((a, b) => b.tardyMin - a.tardyMin).slice(0, topN),
     byUtos: [...all].sort((a, b) => b.utos - a.utos).slice(0, topN),
     byPtos: [...all].sort((a, b) => b.ptos - a.ptos).slice(0, topN),
-    bySickLeaves: [...all].sort((a, b) => b.sickLeaves - a.sickLeaves).slice(0, topN),
+    byPartialSickLeaves: [...all].sort((a, b) => b.partialSickLeaves - a.partialSickLeaves).slice(0, topN),
+    byCompleteSickLeaves: [...all].sort((a, b) => b.completeSickLeaves - a.completeSickLeaves).slice(0, topN),
+    byEmergencies: [...all].sort((a, b) => b.emergencies - a.emergencies).slice(0, topN),
   };
 }
 

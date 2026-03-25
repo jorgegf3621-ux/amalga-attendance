@@ -7,19 +7,21 @@ const TABS = [
   { key: 'byTardyMinutes', label: 'Tardy Min', field: 'tardyMin', color: '#f97316', fmt: v => fmtMinToHrs(v) },
   { key: 'byUtos', label: 'UTOs', field: 'utos', color: '#6366f1' },
   { key: 'byPtos', label: 'PTOs', field: 'ptos', color: '#C6842A' },
-  { key: 'bySickLeaves', label: 'Sick Leaves', field: 'sickLeaves', color: '#06b6d4' },
+  { key: 'byPartialSickLeaves', label: 'Partial Sick Leave', field: 'partialSickLeaves', color: '#0ea5e9' },
+  { key: 'byCompleteSickLeaves', label: 'Complete Sick Leave', field: 'completeSickLeaves', color: '#06b6d4' },
+  { key: 'byEmergencies', label: 'Emergency', field: 'emergencies', color: '#ec4899' },
 ];
 
 export default function OutliersSection({ data, onSelectAgent }) {
   const [activeTab, setActiveTab] = useState('byAbsences');
-  const outliers = calcOutliers(data);
+  const outliers = calcOutliers(data, 3);
   const currentTab = TABS.find(t => t.key === activeTab);
   const rows = outliers[activeTab] || [];
   const maxVal = Math.max(...rows.map(r => r[currentTab.field]), 1);
 
   return (
     <div className="animate-fade-up delay-4">
-      <h2 className="text-sm font-medium uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>Outliers — Top 5</h2>
+      <h2 className="text-sm font-medium uppercase tracking-wider mb-4" style={{ color: 'var(--text-muted)' }}>Outliers - Top 3</h2>
 
       <div className="flex flex-wrap gap-1.5 mb-4">
         {TABS.map(tab => (
